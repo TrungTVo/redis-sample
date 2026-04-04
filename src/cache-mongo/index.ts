@@ -1,14 +1,17 @@
-const express = require('express');
-const { ObjectId } = require('mongodb');
-const MongoClient = require('mongodb').MongoClient;
-const redis = require('redis');
+import express from 'express';
+import { config } from 'dotenv';
+import { MongoClient, ObjectId } from 'mongodb';
+import { createClient } from 'redis';
+import { join } from 'path';
 
+
+config({ path: join(process.cwd(), ".env") });
 const app = express();
-const mongoUrl = 'mongodb://root:example@localhost:27017';
-const redisUrl = 'redis://localhost:6379';
+const MONGO_URL: string = `mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@${process.env.MONGO_HOST_PATH}`;
+const REDIS_URL: string = `redis://default@${process.env.REDIS_HOST_PATH}`;
 
-const mongoClient = new MongoClient(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
-const redisClient = redis.createClient(redisUrl);
+const mongoClient = new MongoClient(MONGO_URL);
+const redisClient = createClient({ url: REDIS_URL });
 
 async function connectToMongo() {
     try {
@@ -30,29 +33,29 @@ async function connectToRedis() {
     }
 }
 
-async function getDataFromMongo(id) {
+async function getDataFromMongo(id: string) {
     const startTime = Date.now();
     const collection = mongoClient.db('test').collection('users');
     const result = await collection.findOne({ _id: ObjectId.createFromHexString(id) });
     const endTime = Date.now();
     const timeTaken = endTime - startTime;
-    console.log(`Data retrieved from MongoDB (id: ${id}): ${timeTaken}ms`);
+    console.log(`(${timeTaken}ms) Data retrieved from MongoDB: ${JSON.stringify(result)}`);
     return result;
 }
 
-async function getDataFromRedis(id) {
+async function getDataFromRedis(id: string) {
     const startTime = Date.now();
-    const cachedData = await redisClient.get(`data:${id}`); // Use a consistent key prefix
+    const cachedData = await redisClient.get(`user-data:${id}`); // Use a consistent key prefix
     const endTime = Date.now();
     const timeTaken = endTime - startTime;
 
     if (cachedData) {
-        console.log(`Data retrieved from Redis cache (id: ${id}): ${timeTaken}ms`);
+        console.log(`(${timeTaken}ms) Data retrieved from Redis cache: ${JSON.stringify(cachedData)}`);
         return JSON.parse(cachedData); // Parse cached data if necessary
     } else {
         // If not found in cache, fetch from MongoDB and update cache
         const data = await getDataFromMongo(id);
-        await redisClient.set(`data:${id}`, JSON.stringify(data), 'EX', 60); // Cache for 60 seconds
+        await redisClient.set(`user-data:${id}`, JSON.stringify(data), {expiration: {type: 'EX', value: 60} }); // Cache for 60 seconds
         return data;
     }
 }

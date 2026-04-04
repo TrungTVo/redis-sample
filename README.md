@@ -2,7 +2,7 @@
 
 ## Start Mongo and Redis server
 
-```
+```bash
 docker compose up
 ```
 
@@ -10,10 +10,22 @@ docker compose up
 
 In Mongo DB, create `test` db and add new `users` collection. Then add a few sample user documents into it for testing purpose.
 
-## Start application
+## Build
 
+```bash
+npm run build
 ```
-npm start
+
+## Start application demo
+
+Format:
+```bash
+npm run start:<demo>
+```
+
+Example:
+```bash
+npm run start:cache-mongo
 ```
 
 Hit sample endpoint `/data/:id` with `id` taken from MongoDB of `_id` field
