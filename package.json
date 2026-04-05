@@ -4,7 +4,8 @@
   "description": "Sample use cases of Redis",
   "scripts": {
     "build": "sh build.sh",
-    "start:cache-mongo": "node dist/cache-mongo/index.js"
+    "start:cache-mongo": "node dist/cache-mongo/index.js",
+    "start:concurrency-race-condition": "node dist/concurrency-race-condition/index.js"
   },
   "author": "Trung Vo",
   "license": "ISC",
