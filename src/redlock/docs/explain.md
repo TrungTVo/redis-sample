@@ -36,6 +36,8 @@ This will send 10 concurrent `/buy` requests to random instances (`A`, `B`, or `
 Now, we have 3 instances of the same app running, all sharing the same MongoDB database. Each instance has an endpoint to check the stock of a product and an endpoint to buy the product (which decrements the stock by 1). Initially, the stock is set to 10. If we send 10 concurrent `/buy` requests, we can see that `redlock` is acquired by one instance at a time, ensuring that the stock is decremented correctly without any race conditions. This way, we can maintain the consistency of the stock value across all instances, even under high concurrency.
 
 ## Simulated Output
+
+✅ Consistent stock value since `redlock` ensures that only one instance can update the stock at a time, preventing race conditions.
 ```
 {
   "error": "Server busy because resource is locked, try again.",
